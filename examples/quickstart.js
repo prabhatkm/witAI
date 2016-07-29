@@ -41,8 +41,8 @@ const actions = {
     });
   },
   getForecast({context, entities}) {
-    console.log(location);
-      
+    console.log("r",entities.location);
+    console.log("abc",entities[location]);
     return new Promise(function(resolve, reject) {
       var location = firstEntityValue(entities, 'location')
       if (location) {
