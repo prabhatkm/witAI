@@ -105,13 +105,13 @@ const actions = {
               
               var tempMessage = {};
               tempMessage.text = 'select cuisine';
-              tempMessage.quick_replies = [];
+              tempMessage.quickreplies = [];
               cuisineOptions.forEach(function(cuisine) {
-                tempMessage.quick_replies.push ({"content_type":"text", "title":cuisine,"payload":cuisine});
-
-                return resolve(tempMessage);
+                tempMessage.quickreplies.push ({"content_type":"text", "title":cuisine,"payload":cuisine});
               }, this);
-              
+               console.log("##3",tempMessage);
+                return resolve(tempMessage);
+             
 
 
                
