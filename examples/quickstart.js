@@ -7,7 +7,8 @@ try {
 } catch (e) {
   Wit = require('node-wit').Wit;
 }
-
+var intent, cuisine, product, veg;
+var location;
 const accessToken = (() => {
   if (process.argv.length !== 3) {
     console.log('usage: node examples/quickstart.js <wit-access-token>');
@@ -49,14 +50,103 @@ const actions = {
       console.log("location",location);
       if (location) {
         context.forecast = 'sunny in ' + location; // we should call a weather API here
-        //delete context.missingLocation;
+        delete context.missingLocation;
       } else {
-        //context.missingLocation = true;
+        context.missingLocation = true;
         delete context.forecast;
       }
       return resolve(context);
     });
-  } /* ,
+  },
+  getOrder({context,entities}){
+    //console.log("getOrder", context, entities);
+    return new Promise(function(resolve, reject){
+      intent=(firstEntityValue(entities, 'intent'))?firstEntityValue(entities, 'intent'):intent;
+      veg=(firstEntityValue(entities, 'veg_nonveg'))?firstEntityValue(entities, 'veg_nonveg'):veg;
+      product=(firstEntityValue(entities, 'product'))?firstEntityValue(entities, 'product'): product;
+
+      cuisine=(firstEntityValue(entities, 'cuisine'))?firstEntityValue(entities, 'cuisine'):cuisine;
+      console.log("entities-> entity",intent, cuisine, veg, product );
+
+      if(veg) {delete context.missingVeg;}
+      if(cuisine) {delete context.missingCuisine;}
+      
+      console.log("getOrder", context, entities);
+    
+
+      if(intent === 'order'){
+        if(product === 'food'){
+          if(cuisine && veg){
+            context.orderNo = 123; 
+            console.log("Ordered for "+cuisine+" "+veg+" "+product);
+            delete context.missingVeg;
+            delete context.missingCuisine;
+            veg=null;
+            cuisine=null;
+            product=null;
+            intent=null;
+            location =null;
+            return resolve(context);
+          }//cuisine and veg
+          else if (cuisine){
+            delete context.orderNo;
+            delete context.missingCuisine;
+            context.missingVeg = true;
+            return resolve(context);
+          }//cuisine and !veg
+          else if (veg){
+           // zomato.getCuisines(context.coords,function(cuisineOptions){
+              var cuisineOptions = ["punjabi","gujarati","chiniese","maxican"];
+              context.cuisineOptions = cuisineOptions;//.join(',').substr(0,317) + "...";
+              delete context.orderNo;
+              delete context.missingVeg;
+              context.missingCuisine = true;
+              context.quickreplies = cuisineOptions;
+              
+              var tempMessage = {};
+              tempMessage.text = 'select cuisine';
+              tempMessage.quick_replies = [];
+              cuisineOptions.forEach(function(cuisine) {
+                tempMessage.quick_replies.push ({"content_type":"text", "title":cuisine,"payload":cuisine});
+
+                return resolve(tempMessage);
+              }, this);
+              
+
+
+               
+          //  });             
+          }// !cuisine and veg
+          else{
+            delete context.orderNo;
+            context.missingCuisine = true;
+            context.missingVeg = true;
+             return resolve(context);
+          } //!cuisine and !veg
+        }//product
+        else {
+          delete context.orderNo;
+          delete context.missingVeg;
+          delete context.missingCuisine;
+          return resolve(context);
+        }
+      }//intent
+      else if(intent === 'weather'){
+        delete context.orderNo;
+        delete context.missingVeg;
+        delete context.missingCuisine;
+        //getForecast({context, entities});
+        return resolve(context);
+      }
+     
+    });
+
+  }
+  
+  
+  
+  
+   /* ,
   getText({context}) {
     console.log("tead");
     return new Promise(function(resolve, reject) {
